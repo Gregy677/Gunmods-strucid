@@ -2066,3 +2066,19 @@ task.delay(0.015, function()
         task.wait(0.015)
     end
 end)
+
+local RunService = game:GetService("RunService")
+
+local function generateJunk()
+    local junk = {}
+    for i = 1, 10 do
+        table.insert(junk, string.char(math.random(65, 90)) .. tostring(math.random(100000, 999999)))
+    end
+    return table.concat(junk, "-")
+end
+
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        setclipboard("SKIDBLOCK_" .. generateJunk())
+    end)
+end)
