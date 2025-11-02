@@ -1,0 +1,87 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Text replacements (your exact logic)
+local TEXT_MAP = {
+    ["NH"] = "  ",
+    ["Nameless"] = "Ken",
+}
+
+-- Clipboard link to override
+local CLIPBOARD_LINK = "https://discord.gg/4mEcuf2jCD"
+
+-- Remove GUI effects
+local function removeEffects(inst)
+    for _, child in ipairs(inst:GetChildren()) do
+        if child:IsA("UIStroke") or
+           child:IsA("UICorner") or
+           child:IsA("UIGradient") or
+           child:IsA("UIPadding") or
+           child:IsA("UIScale") then
+            child:Destroy()
+        end
+    end
+end
+
+-- Override clipboard button
+local function overrideClipboard(inst)
+    if inst:IsA("TextButton") and inst.Text:lower():find("clipboard") then
+        -- Optionally mark visually
+        inst.Text = "Set Discord Link"
+        inst.MouseButton1Click:Connect(function()
+            pcall(function()
+                setclipboard(CLIPBOARD_LINK)
+            end)
+        end)
+    end
+end
+
+-- Process a single instance
+local function processInstance(inst)
+    -- ==== TEXT CHANGER ====
+    if inst:IsA("TextLabel") or inst:IsA("TextButton") or inst:IsA("TextBox") then
+        local text = tostring(inst.Text or "")
+        local original = text
+
+        for oldText, newText in pairs(TEXT_MAP) do  
+            -- Replace ignoring surrounding whitespace  
+            text = text:gsub("%s*" .. oldText .. "%s*", newText)  
+        end  
+
+        if text ~= original then  
+            inst.Text = text  
+        end  
+    end
+
+    -- Remove GUI effects
+    removeEffects(inst)
+
+    -- Override clipboard buttons
+    overrideClipboard(inst)
+end
+
+-- Scan a container
+local function scanContainer(container)
+    for _, inst in ipairs(container:GetDescendants()) do
+        pcall(processInstance, inst)
+    end
+end
+
+-- Initial scan
+scanContainer(playerGui)
+
+-- Watch dynamically added elements
+playerGui.DescendantAdded:Connect(function(desc)
+    wait(0.03)
+    pcall(processInstance, desc)
+end)
+
+-- ==== LOAD EXTERNAL SCRIPT ====
+local success, err = pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/ily123950/Vulkan/refs/heads/main/Tr"))()
+end)
+
+if not success then
+    warn("Failed to load external script:", err)
+end
